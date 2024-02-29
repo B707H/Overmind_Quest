@@ -69,7 +69,8 @@ module overmind::NonFungibleToken {
     //==============================================================================================
     // Constants - Add your constants here (if any)
     //==============================================================================================
-
+    const NftPrice: u64 = 1000000000;
+    const EProfileMismatch: u64 = 0;
     //==============================================================================================
     // Error codes - DO NOT MODIFY
     //==============================================================================================
@@ -178,15 +179,34 @@ module overmind::NonFungibleToken {
         @return the change coin
     */
     public fun mint_nft(
-        recipient: address, 
-        nft_name: vector<u8>, 
-        nft_description: vector<u8>, 
-        nft_image: vector<u8>,
-        payment_coin: &mut Coin<SUI>,
-        minter_cap: &mut MinterCap,
-        ctx: &mut TxContext, 
+      recipient: address,
+      nft_name: vector<u8>,
+      nft_description: vector<u8>,
+      nft_image: vector<u8>,
+      payment_coin: &mut Coin<SUI>,
+      minter_cap: &mut MinterCap, 
+      ctx: &mut TxContext
     ) {
-        
+      assert!(coin::value(payment_coin) >= NftPrice, EInsufficientPayment); 
+
+      let coin_balance = coin::balance_mut(payment_coin);
+      let paid = balance::split(coin_balance, NftPrice);
+
+      balance::join(&mut minter_cap.sales, paid);
+      
+      let nft = NonFungibleToken {
+            id: object::new(ctx),
+            name: string::utf8(nft_name),
+            description: string::utf8(nft_description),
+            image: url::new_unsafe_from_bytes(nft_image)
+        };
+      
+      event::emit(NonFungibleTokenMinted {
+            nft_id: object::id(&nft),
+            recipient: recipient,
+      });
+
+      transfer::transfer(nft, recipient);
     }
 
     /* 
