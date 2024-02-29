@@ -294,7 +294,7 @@ module overmind::NonFungibleToken {
         @return the NFT's `name`
     */
     public fun name(nft: &NonFungibleToken): String {
-
+      nft.name
     }
 
     /* 
