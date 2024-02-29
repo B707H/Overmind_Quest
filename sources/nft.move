@@ -157,7 +157,11 @@ module overmind::NonFungibleToken {
         @param ctx - the transaction context
     */
     fun init(ctx: &mut TxContext) {
-
+      let minter_cap = MinterCap {
+        id: object::new(ctx),
+        sales: balance::zero()
+      };
+      transfer::transfer(minter_cap, tx_context::sender(ctx));
     }
 
     /* 
