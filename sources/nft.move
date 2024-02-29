@@ -219,12 +219,45 @@ module overmind::NonFungibleToken {
         @return the new NFT object
     */
     public fun combine_nfts(
-        nft1: NonFungibleToken,
-        nft2: NonFungibleToken,
-        new_image_url: vector<u8>,
-        ctx: &mut TxContext,
-    ): NonFungibleToken {
-        
+          nft1: NonFungibleToken,
+          nft2: NonFungibleToken,
+          new_image_url: vector<u8>,
+          ctx: &mut TxContext,
+        ): NonFungibleToken {
+        let new_nft_name = nft1.name;
+        let nft2_name = nft2.name;
+        let name_suffix = b" + ";
+        string::append_utf8(&mut new_nft_name, name_suffix);
+        string::append(&mut new_nft_name, nft2_name);
+
+
+        let desc_prefix = b"Combined NFT of ";
+        let desc_suffix = b" and ";
+        let new_nft_description = string::utf8(b"");
+        string::append_utf8(&mut new_nft_description, desc_prefix);
+        string::append(&mut new_nft_description, nft1.name);
+        string::append_utf8(&mut new_nft_description, desc_suffix);
+        string::append(&mut new_nft_description, nft2.name);
+
+        let new_nft = NonFungibleToken {
+          id: object::new(ctx),
+          name: new_nft_name,
+          description: new_nft_description,
+          image: url::new_unsafe_from_bytes(new_image_url)  
+        };
+
+        event::emit(NonFungibleTokenCombined {
+          nft1_id: object::uid_to_inner(&nft1.id),
+          nft2_id: object::uid_to_inner(&nft2.id),
+          new_nft_id: object::uid_to_inner(&new_nft.id)
+        });
+
+        let NonFungibleToken { id: nft1_id, name: _, description: _, image: _ } = nft1;
+        object::delete(nft1_id);
+        let NonFungibleToken { id: nft2_id, name: _, description: _, image: _ } = nft2;
+        object::delete(nft2_id);
+
+        new_nft
     }
 
     /* 
