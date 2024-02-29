@@ -312,7 +312,7 @@ module overmind::NonFungibleToken {
         @return the NFT's `image`
     */
     public fun url(nft: &NonFungibleToken): Url {
-        
+      nft.image
     }
 
     //==============================================================================================
